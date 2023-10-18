@@ -65,6 +65,8 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
+  { dir = '~/plugins/stackmap.nvim' },
+  'ThePrimeAgen/vim-be-good',
   -- NOTE: First, some plugins that don't require any configuration
 
   -- Git related plugins
@@ -86,7 +88,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
+      { 'j-hui/fidget.nvim',       tag = 'legacy', opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -110,7 +112,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',         opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -128,16 +130,24 @@ require('lazy').setup({
 
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
-        vim.keymap.set({'n', 'v'}, ']c', function()
-          if vim.wo.diff then return ']c' end
-          vim.schedule(function() gs.next_hunk() end)
+        vim.keymap.set({ 'n', 'v' }, ']c', function()
+          if vim.wo.diff then
+            return ']c'
+          end
+          vim.schedule(function()
+            gs.next_hunk()
+          end)
           return '<Ignore>'
-        end, {expr=true, buffer = bufnr, desc = "Jump to next hunk"})
-        vim.keymap.set({'n', 'v'}, '[c', function()
-          if vim.wo.diff then return '[c' end
-          vim.schedule(function() gs.prev_hunk() end)
+        end, { expr = true, buffer = bufnr, desc = 'Jump to next hunk' })
+        vim.keymap.set({ 'n', 'v' }, '[c', function()
+          if vim.wo.diff then
+            return '[c'
+          end
+          vim.schedule(function()
+            gs.prev_hunk()
+          end)
           return '<Ignore>'
-        end, {expr=true, buffer = bufnr, desc = "Jump to previous hunk"})
+        end, { expr = true, buffer = bufnr, desc = 'Jump to previous hunk' })
       end,
     },
   },
@@ -149,6 +159,9 @@ require('lazy').setup({
     config = function()
       vim.cmd.colorscheme 'onedark'
     end,
+
+    -- other nice themes:
+    -- https://github.com/catppuccin/nvim
   },
 
   {
@@ -222,6 +235,7 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
+  -- require 'custom.plugins.none-ls',
 }, {})
 
 -- [[ Setting options ]]
@@ -232,7 +246,8 @@ require('lazy').setup({
 vim.o.hlsearch = false
 
 -- Make line numbers default
-vim.wo.number = true
+-- vim.wo.number = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -396,6 +411,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
 local on_attach = function(_, bufnr)
+  vim.print(_)
   -- NOTE: Remember that lua is a real programming language, and as such it is possible
   -- to define small helper and utility functions so you don't have to repeat yourself
   -- many times.
@@ -455,11 +471,25 @@ local servers = {
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
 
   lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = false },
+    settings = {
+      Lua = {
+        workspace = { checkThirdParty = false },
+        telemetry = { enable = false },
+      },
     },
   },
+  eslint = {
+    on_attach = function(_, bufnr)
+      on_attach(_, bufnr)
+
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        group = vim.api.nvim_create_augroup('EslintGroup', { clear = true }),
+        buffer = bufnr,
+        command = "EslintFixAll",
+      })
+    end
+  },
+  tailwindcss = {},
 }
 
 -- Setup neovim lua configuration
@@ -480,11 +510,13 @@ mason_lspconfig.setup_handlers {
   function(server_name)
     require('lspconfig')[server_name].setup {
       capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
+      -- on_attach = on_attach,
+      on_attach = (servers[server_name] or {}).on_attach or on_attach,
+      settings = (servers[server_name] or {}).settings,
+      -- settings = servers[server_name],
       filetypes = (servers[server_name] or {}).filetypes,
     }
-  end
+  end,
 }
 
 -- [[ Configure nvim-cmp ]]
@@ -537,3 +569,50 @@ cmp.setup {
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+function ColorMyPencils(color)
+  -- color = color or ''
+  vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+  vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+end
+
+ColorMyPencils()
+
+-- P = function(v)
+-- 	print(vim.inspect(v))
+-- 	return v
+-- end
+
+require('custom/globals')
+-- require('lua/custom/globals')
+-- require('custom/tools/eslint')
+-- local balls = require('typescript')
+
+
+-- Notes from Discord!
+
+-- 𝐧𝐢𝐥𝐬𝐬𝐨 — Today at 11:25 AM
+-- @alexx yeah, whatever your movement keys are just hook them up like this:
+-- -- Move to splits using leader
+-- remap('n', '<leader>KEY', ':wincmd h<CR>')
+-- remap('n', '<leader>KEY', ':wincmd j<CR>')
+-- remap('n', '<leader>KEY', ':wincmd k<CR>')
+-- remap('n', '<leader>KEY', ':wincmd l<CR>')
+-- local function run_eslint()
+--   vim.cmd("!eslint_d % --fix")
+-- end
+--
+-- -- Set up an autocommand to run run_eslint() when saving .js and .ts files
+-- -- vim.api.nvim_command [[
+-- --   autocmd BufWritePre *.js,*.ts lua run_eslint()
+-- -- ]]
+-- local eslint_group = vim.api.nvim_create_augroup('EslintGroup', { clear = true })
+-- vim.api.nvim_create_autocmd('BufWritePre', {
+--   callback = run_eslint,
+--   group = highlight_group,
+--   pattern = '*.ts',
+-- })
+--
+
+
+vim.keymap.set('n', '<leader>f', ':!npx prettier % --write<CR><CR>', { desc = '[f]ormat files' })

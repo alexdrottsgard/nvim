@@ -1,0 +1,10 @@
+-- local eslint = require('custom.tools.eslint')
+--
+-- local group = vim.api.nvim_create_augroup("javascript-is-silly", { clear = true })
+-- local buffer = vim.api.nvim_get_current_buf()
+--
+-- vim.api.nvim_create_autocmd("BufWritePost", {
+--   group = group,
+--   buffer = buffer,
+--   callback = eslint.run_eslint,
+-- })
