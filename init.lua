@@ -591,7 +591,6 @@ ColorMyPencils()
 -- 	return v
 -- end
 
-require('custom/globals')
 -- require('lua/custom/globals')
 -- require('custom/tools/eslint')
 -- local balls = require('typescript')
