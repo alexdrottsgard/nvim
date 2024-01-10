@@ -623,3 +623,4 @@ ColorMyPencils()
 
 
 vim.keymap.set('n', '<leader>f', ':!npx prettier % --write<CR><CR>', { desc = '[f]ormat files' })
+vim.keymap.set('n', '<leader>yf', ':r !echo % <CR> dd', { desc = '[y]ank filename' })
